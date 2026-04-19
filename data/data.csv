@@ -1,0 +1,5 @@
+distance_km,order_hour,traffic_level,prep_time,weather,delivery_rating,eta
+2.5,13,3,15,1,4.5,25
+5.0,20,5,25,2,4.0,45
+1.2,11,2,10,1,4.8,15
+3.0,14,4,20,3,4.2,35
