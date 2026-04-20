@@ -7,37 +7,61 @@ import os
 
 API_URL = "https://eta-prediction-api.onrender.com/predict"
 
-st.set_page_config(page_title="ETA ML System", page_icon="🚚", layout="wide")
+st.set_page_config(page_title="ETA System", page_icon="🚚", layout="wide")
+
+st.markdown("""
+<style>
+.block-container {
+    padding-top: 2rem;
+}
+.center-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.login-card {
+    background-color: #1c1f26;
+    padding: 30px;
+    border-radius: 12px;
+    width: 350px;
+}
+</style>
+""", unsafe_allow_html=True)
 
 users = {
     "admin": "1234",
     "rajesh": "ml123",
-    "qwerty": "5313"
+    "raj": "5313"
 }
 
-def login():
-    st.sidebar.title("🔐 Login")
-    username = st.sidebar.text_input("Username")
-    password = st.sidebar.text_input("Password", type="password")
-
-    if st.sidebar.button("Login"):
-        if username in users and users[username] == password:
-            st.session_state["auth"] = True
-            st.session_state["user"] = username
-        else:
-            st.sidebar.error("Invalid credentials")
-
 if "auth" not in st.session_state:
-    login()
+    st.session_state.auth = False
+
+if not st.session_state.auth:
+    st.markdown("<div class='center-box'>", unsafe_allow_html=True)
+    st.markdown("<div class='login-card'>", unsafe_allow_html=True)
+
+    st.markdown("## 🔐 Login")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if username in users and users[username] == password:
+            st.session_state.auth = True
+            st.session_state.user = username
+            st.rerun()
+        else:
+            st.error("Invalid credentials")
+
+    st.markdown("</div></div>", unsafe_allow_html=True)
     st.stop()
 
 st.title("🚚 ETA Prediction System")
-st.caption(f"Welcome, {st.session_state['user']} 👋")
+st.caption(f"Welcome, {st.session_state.user} 👋")
 
-st.markdown("### 🔌 System Status")
 try:
     requests.get(API_URL.replace("/predict", "/"), timeout=2)
-    st.success("✅ Backend API Connected")
+    st.success("✅ Backend Connected")
 except:
     st.error("❌ API Not Reachable")
 
@@ -45,13 +69,12 @@ st.divider()
 
 tab1, tab2 = st.tabs(["🔮 Prediction", "📊 Analytics"])
 
-
 with tab1:
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("### 📥 Input Features")
+        st.subheader("📥 Input Features")
 
         distance = st.slider("📍 Distance (km)", 0.5, 10.0, 3.0)
         hour = st.slider("🕒 Order Hour", 0, 23, 13)
@@ -61,27 +84,40 @@ with tab1:
         rating = st.slider("⭐ Delivery Rating", 1.0, 5.0, 4.5)
 
     payload = {
-        "distance_km": distance,
-        "order_hour": hour,
-        "traffic_level": traffic,
-        "prep_time": prep,
-        "weather": weather,
-        "delivery_rating": rating
+        "Distance (km)": distance,
+        "Order Hour": hour,
+        "Traffic Level": traffic,
+        "Prep Time": prep,
+        "Weather": weather,
+        "Rating": rating
+    }
+
+    rounded_payload = {
+        k: round(v, 2) if isinstance(v, float) else v
+        for k, v in payload.items()
     }
 
     with col2:
-        st.markdown("### 📊 Input Summary")
+        st.subheader("📊 Input Summary")
         st.table({
-            "Feature": list(payload.keys()),
-            "Value": list(payload.values())
+            "Feature": list(rounded_payload.keys()),
+            "Value": list(rounded_payload.values())
         })
 
-    st.markdown("### 🚀 Prediction")
+    st.subheader("🚀 Prediction")
 
     if st.button("Predict ETA"):
-        with st.spinner("Processing prediction..."):
+        with st.spinner("Calculating ETA..."):
             try:
-                response = requests.post(API_URL, json=payload, timeout=10)
+                response = requests.post(API_URL, json={
+                    "distance_km": distance,
+                    "order_hour": hour,
+                    "traffic_level": traffic,
+                    "prep_time": prep,
+                    "weather": weather,
+                    "delivery_rating": rating
+                }, timeout=10)
+
                 result = response.json()
                 time.sleep(1)
 
@@ -90,25 +126,25 @@ with tab1:
                 st.metric("⏱️ Estimated Delivery Time", f"{eta} min")
 
                 if eta < 25:
-                    st.success("🚀 Fast delivery expected")
+                    st.success("🚀 Fast delivery")
                 elif eta < 40:
-                    st.warning("⏳ Moderate delivery time")
+                    st.warning("⏳ Moderate time")
                 else:
                     st.error("🚦 Delay expected")
 
                 os.makedirs("logs", exist_ok=True)
                 with open("logs/ui_log.json", "a") as f:
                     f.write(json.dumps({
-                        "input": payload,
+                        "input": rounded_payload,
                         "prediction": eta
                     }) + "\n")
 
             except:
-                st.error("⚠️ API request failed")
+                st.error("⚠️ API error")
 
 
 with tab2:
-    st.markdown("## 📊 Analytics Dashboard")
+    st.subheader("📊 Analytics Dashboard")
 
     log_file = "logs/ui_log.json"
 
@@ -116,22 +152,22 @@ with tab2:
 
         df = pd.read_json(log_file, lines=True)
 
-        st.metric("Total Predictions", len(df))
-        st.metric("Average ETA", round(df["prediction"].mean(), 2))
+        col1, col2 = st.columns(2)
+        col1.metric("Total Predictions", len(df))
+        col2.metric("Avg ETA", round(df["prediction"].mean(), 2))
 
         st.markdown("### 📈 Prediction Trend")
         st.line_chart(df["prediction"])
 
         st.markdown("### 🚦 Traffic Distribution")
-        traffic_data = df["input"].apply(lambda x: x["traffic_level"])
+        traffic_data = df["input"].apply(lambda x: x["Traffic Level"])
         st.bar_chart(traffic_data.value_counts())
 
     else:
-        st.info("No prediction data available yet.")
+        st.info("No data available yet")
 
 st.divider()
 st.markdown(
-    "<center>👨‍💻 Built by Rajesh | ML Engineer Portfolio 🚀</center>",
+    "<center>👨‍💻 Built by Rajesh | ML Engineer Project 🚀</center>",
     unsafe_allow_html=True
 )
-
