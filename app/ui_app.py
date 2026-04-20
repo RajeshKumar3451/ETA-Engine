@@ -30,7 +30,7 @@ st.markdown("""
 
 users = {
     "admin": "1234",
-    "rajesh": "ml123",
+    "rajesh": "kumar",
     "raj": "5313"
 }
 
@@ -152,6 +152,23 @@ with tab2:
 
         df = pd.read_json(log_file, lines=True)
 
+    
+        def safe_parse(x):
+            if isinstance(x, str):
+                try:
+                    return json.loads(x.replace("'", '"'))
+                except:
+                    return {}
+            return x
+
+        df["input"] = df["input"].apply(safe_parse)
+
+        
+        input_df = pd.json_normalize(df["input"].tolist())
+
+        
+        df = pd.concat([df.drop(columns=["input"]), input_df], axis=1)
+
         col1, col2 = st.columns(2)
         col1.metric("Total Predictions", len(df))
         col2.metric("Avg ETA", round(df["prediction"].mean(), 2))
@@ -159,12 +176,15 @@ with tab2:
         st.markdown("### 📈 Prediction Trend")
         st.line_chart(df["prediction"])
 
-        st.markdown("### 🚦 Traffic Distribution")
-        traffic_data = df["input"].apply(lambda x: x["Traffic Level"])
-        st.bar_chart(traffic_data.value_counts())
+        if "Traffic Level" in df.columns:
+            st.markdown("### 🚦 Traffic Distribution")
+            st.bar_chart(df["Traffic Level"].value_counts().sort_index())
+        else:
+            st.warning("Traffic data missing")
 
     else:
         st.info("No data available yet")
+
 
 st.divider()
 st.markdown(
