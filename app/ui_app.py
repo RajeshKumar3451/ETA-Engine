@@ -11,7 +11,8 @@ st.set_page_config(page_title="ETA ML System", page_icon="🚚", layout="wide")
 
 users = {
     "admin": "1234",
-    "rajesh": "ml123"
+    "rajesh": "ml123",
+    "qwerty": "5313"
 }
 
 def login():
