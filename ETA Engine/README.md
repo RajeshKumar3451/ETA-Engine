@@ -207,7 +207,6 @@ Simple session-based login system implemented in Streamlit UI.
 * Handling semi-structured data (JSON logs)
 * Building user-facing ML applications
 * Monitoring & analytics
-
 ---
 
 ## 📌 Future Improvements
