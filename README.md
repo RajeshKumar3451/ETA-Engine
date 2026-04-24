@@ -112,22 +112,6 @@ User → Streamlit UI → FastAPI → ML Model → Prediction
 }
 ```
 
----
-
-## 🖥️ UI Preview
-
-![Input form](image.png)
-
-![Prediction result](image-1.png)
-
-* Analytics dashboard
-
-![Prediction Trend](image-2.png)
-
-![Traffic Distribution](image-3.png)
-
----
-
 ## 📁 Project Structure
 
 ```
