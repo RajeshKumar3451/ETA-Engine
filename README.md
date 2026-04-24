@@ -6,8 +6,8 @@
 
 ## 🌐 Live Demo
 
-* 🔮 **Frontend (Streamlit UI):** https://your-streamlit-app-url
-* ⚙️ **API Docs (FastAPI):** https://your-api-url/docs
+* 🔮 **Frontend (Streamlit UI):** https://eta-engine.streamlit.app/
+* ⚙️ **API Docs (FastAPI):** https://eta-prediction-api.onrender.com/
 
 ---
 
@@ -134,7 +134,7 @@ ml-eta-project/
 ### 1️⃣ Clone repo
 
 ```bash
-git clone https://github.com/your-username/your-repo.git
+git clone https://github.com/RajeshKumar3451/ETA-Engine.git
 cd your-repo
 ```
 
